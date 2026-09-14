@@ -1,3 +1,49 @@
+<script setup>
+import { apiLogin } from '@/functions/api/auth';
+import { useUserStore } from '@/stores/user';
+import { ref } from 'vue';
+import { useRouter } from 'vue-router';
+const router = useRouter()
+const user = ref({
+    email: '',
+    password: ''
+})
+const userError = ref({
+    email: '',
+    password: ''
+})
+
+const defualtUser = {
+    email: '',
+    password: ''
+}
+const defualtUserError = {
+    email: '',
+    password: ''
+}
+
+const resetUserState = () => {
+    user.value = defualtUser
+    userError.value = defualtUserError
+}
+
+const userStore = useUserStore()
+async function login() {
+    try {
+        const res = await apiLogin(user.value)
+        console.log(res.data.token);
+
+        userStore.setSanctumToken(res.data.token)
+        userStore.setUserState(res.data.user)
+
+        router.replace({ name: 'chats' })
+    } catch (error) {
+        alert(error.message)
+        resetUserState()
+    }
+}
+
+</script>
 <template>
     <div class="bg-gray-100 flex items-center justify-center min-h-screen">
         <div class="bg-white shadow-lg rounded-2xl p-8 w-full max-w-md">
@@ -6,18 +52,18 @@
             <p class="text-gray-500 text-center mt-2">Login to your account</p>
 
             <!-- Form -->
-            <form class="mt-6 space-y-4">
+            <form class="mt-6 space-y-4" @submit.prevent="login">
                 <!-- Email -->
                 <div>
                     <label class="block text-gray-700 mb-1">Email</label>
-                    <input type="email" placeholder="Enter your email"
+                    <input v-model="user.email" type="email" placeholder="Enter your email"
                         class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500" />
                 </div>
 
                 <!-- Password -->
                 <div>
                     <label class="block text-gray-700 mb-1">Password</label>
-                    <input type="password" placeholder="Enter your password"
+                    <input v-model="user.password" type="password" placeholder="Enter your password"
                         class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500" />
                 </div>
 
