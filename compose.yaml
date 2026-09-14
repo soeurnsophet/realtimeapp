@@ -1,0 +1,77 @@
+services:
+    backend-laravel:
+        container_name: backend-laravel-container
+        build:
+            context: .
+            dockerfile: docker/laravel/Dockerfile
+        working_dir: /var/www/html
+        volumes:
+            - ./backend:/var/www/html
+            - ./docker/laravel/entrypoint.development.sh:/usr/local/bin/entrypoint.development.sh
+            - backend-volume:/var/www/html/vendor
+        ports:
+            - "8000:8000"
+        depends_on:
+            db-mysql:
+                condition: service_healthy
+        command: [ "bash", "/usr/local/bin/entrypoint.development.sh" ]
+        healthcheck:
+            test: [ "CMD", "curl", "-f", "http://localhost:8000/up" ]
+            interval: 10s
+            timeout: 5s
+            retries: 5
+            start_period: 30s
+    frontend-vue:
+        container_name: frontend-vue-container
+        build:
+            context: .
+            dockerfile: docker/vuejs/Dockerfile
+        working_dir: /app
+        volumes:
+            - ./frontend:/app
+            - ./docker/vuejs/entrypoint.development.sh:/usr/local/bin/entrypoint.development.sh
+            - frontend-volume:/app/node_modules
+        ports:
+            - "5173:5173"
+        depends_on:
+            backend-laravel:
+                condition: service_healthy
+
+        command: [ "sh", "/usr/local/bin/entrypoint.development.sh" ]
+
+    db-mysql:
+        image: mysql:8.0
+        container_name: db-mysql-container
+        environment:
+            MYSQL_DATABASE: realtimeapp_db
+            MYSQL_USER: realtimeapp_user
+            MYSQL_PASSWORD: realtimeapp_pass
+            MYSQL_ROOT_PASSWORD: root
+            TZ: UTC
+        volumes:
+            - db-mysql-volume:/var/lib/mysql
+        healthcheck:
+            test: [ "CMD", "mysqladmin", "ping", "-h", "localhost", "-u", "root", "-proot" ]
+            interval: 10s
+            timeout: 5s
+            retries: 5
+            start_period: 30s
+
+    db-phpmyadmin:
+        image: phpmyadmin:5.2.2
+        container_name: db-phpmyadmin-container
+        depends_on:
+            db-mysql:
+                condition: service_healthy
+        environment:
+            UPLOAD_LIMIT: 50M
+            PMA_HOST: db-mysql
+            PMA_PORT: 3306
+            PMA_USER: root
+            PMA_PASSWORD: root
+        ports:
+            - "9100:80"
+volumes:
+    db-mysql-volume:
+    backend-volume:
+    frontend-volume:
