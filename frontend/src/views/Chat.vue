@@ -3,7 +3,7 @@ import ChatList from "@/components/Chats/ChatList.vue";
 import { apiGetChatMessages, apiSendChatMessage } from "@/functions/api/chat";
 import { apiGetUsers } from "@/functions/api/user";
 import { useUserStore } from "@/stores/user";
-import { onMounted, ref } from "vue";
+import { nextTick, onMounted, ref } from "vue";
 const chatList = ref([]);
 const selectedChat = ref({});
 const chatMessages = ref([]);
@@ -34,6 +34,16 @@ async function sendMessage() {
     const res = await apiSendChatMessage(messagePayload);
     chatMessages.value.push(res.data.message);
     message.value = "";
+    await nextTick();
+    scrollToBottom();
+}
+
+const chatWindow = ref(null);
+
+function scrollToBottom() {
+    if (!chatWindow.value) return;
+
+    chatWindow.value.scrollTop = chatWindow.value.scrollHeight;
 }
 </script>
 
@@ -66,7 +76,7 @@ async function sendMessage() {
                     </div>
                 </div>
                 <!-- Messages area -->
-                <div class="flex-1 p-4 overflow-y-auto bg-gray-50 sr">
+                <div ref="chatWindow" id="chat-window" class="flex-1 p-4 overflow-y-auto bg-gray-50 sr">
                     <div v-for="(message, index) in chatMessages" :key="index" class="flex mb-4" :class="message.sender_id === authUser.id
                         ? 'justify-end'
                         : 'justify-start'
@@ -119,8 +129,9 @@ async function sendMessage() {
                         </button>
                         <input v-model="message" type="text" placeholder="Message..."
                             class="flex-1 bg-gray-100 rounded-full py-2 px-4 focus:outline-none" />
-                        <button @click="sendMessage"
-                            class="ml-2 w-10 h-10 rounded-full bg-blue-500 text-white flex items-center justify-center">
+                        <button @click="sendMessage" :disabled="!message"
+                            class="ml-2 w-10 h-10 rounded-full bg-blue-500 text-white flex items-center justify-center"
+                            :class="!message ? 'opacity-50 cursor-not-allowed' : ''">
                             <i class="fas fa-paper-plane"></i>
                         </button>
                     </div>
