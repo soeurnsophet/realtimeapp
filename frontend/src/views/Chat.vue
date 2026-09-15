@@ -1,66 +1,125 @@
 <script setup>
 import ChatList from "@/components/Chats/ChatList.vue";
-import { apiGetChatMessages, apiSendChatMessage } from "@/functions/api/chat";
+import {
+    apiGetChatMessages,
+    apiSendChatMessage
+} from "@/functions/api/chat";
 import { apiGetUsers } from "@/functions/api/user";
+import echo from "@/plugins/echo";
 import { useUserStore } from "@/stores/user";
-import { nextTick, onMounted, ref } from "vue";
+import {
+    nextTick,
+    onMounted,
+    onUnmounted,
+    ref
+} from "vue";
+
 const chatList = ref([]);
-const selectedChat = ref({});
+const selectedChat = ref(null);
 const chatMessages = ref([]);
+
+const authUser = useUserStore();
+
+const message = ref("");
+const chatWindow = ref(null);
+
 async function apiGetChatList() {
     const res = await apiGetUsers();
+
     chatList.value = res.data.users;
 }
-onMounted(async () => {
-    await apiGetChatList();
-});
-const handleSelectChat = (user) => {
+
+const handleSelectChat = async (user) => {
     selectedChat.value = user;
-    getChatMessage(user.id);
+
+    await getChatMessage(user.id);
+
+    await nextTick();
+
+    scrollToBottom();
 };
+
 async function getChatMessage(id) {
     const res = await apiGetChatMessages(id);
+
     chatMessages.value = res.data.messages;
 }
 
-const authUser = useUserStore();
-const message = ref("");
 async function sendMessage() {
+    if (!message.value.trim()) {
+        return;
+    }
+
+    if (!selectedChat.value.id) {
+        return;
+    }
+
     const messagePayload = {
-        sender_id: authUser.id,
         receiver_id: selectedChat.value.id,
         message: message.value,
     };
-    const res = await apiSendChatMessage(messagePayload);
-    chatMessages.value.push(res.data.message);
-    message.value = "";
-    await nextTick();
-    scrollToBottom();
-}
 
-const chatWindow = ref(null);
+    try {
+        const res = await apiSendChatMessage(messagePayload);
+
+        chatMessages.value.push(res.data.message);
+
+        message.value = "";
+
+        await nextTick();
+
+        scrollToBottom();
+    } catch (error) {
+        console.error("Send message error:", error);
+    }
+}
 
 function scrollToBottom() {
     if (!chatWindow.value) return;
 
-    chatWindow.value.scrollTop = chatWindow.value.scrollHeight;
+    chatWindow.value.scrollTop =
+        chatWindow.value.scrollHeight;
 }
-</script>
 
+onMounted(async () => {
+    await apiGetChatList();
+
+
+    echo.private(`realtimeapp.${authUser.id}`)
+        .listen(".message.sent", async (event) => {
+
+            const incomingMessage = event.message;
+            if (
+                selectedChat.value.id ===
+                incomingMessage.sender_id
+            ) {
+                chatMessages.value.push(incomingMessage);
+
+                await nextTick();
+
+                scrollToBottom();
+            }
+        });
+});
+
+onUnmounted(() => {
+    echo.leave(`realtimeapp.${authUser.id}`);
+});
+</script>
 <template>
     <div class="mx-auto p-4 bg-gray-100 min-h-screen">
         <div class="flex flex-col md:flex-row">
             <!-- Left sidebar - Chat list -->
             <ChatList :chatList="chatList" @selectChat="handleSelectChat" />
             <!-- Right side - Chat window -->
-            <div class="w-full bg-white rounded-tr-lg rounded-br-lg shadow flex flex-col"
+            <div v-if="selectedChat" class="w-full bg-white rounded-tr-lg rounded-br-lg shadow flex flex-col"
                 style="height: calc(100vh - 42px)">
                 <!-- Chat header -->
                 <div class="p-4 border-b border-gray-200 flex items-center">
                     <img src="https://randomuser.me/api/portraits/women/44.jpg" alt="Profile"
                         class="w-10 h-10 rounded-full object-cover" />
                     <div class="ml-3">
-                        <h3 class="font-medium">{{ selectedChat.name }}</h3>
+                        <h3 class="font-medium">{{ selectedChat?.name }}</h3>
                         <p class="text-xs text-gray-500">Active now</p>
                     </div>
                     <div class="ml-auto flex space-x-3">
@@ -136,6 +195,9 @@ function scrollToBottom() {
                         </button>
                     </div>
                 </div>
+            </div>
+            <div v-else class="w-full bg-white flex flex-col items-center justify-center h-screen">
+                <h1 class="bg-gray-300/35 px-4 rounded-full">Selected a chat to start a conversation</h1>
             </div>
         </div>
     </div>

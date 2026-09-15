@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Events\MessageSent;
 use App\Models\ChatMessage;
 use Illuminate\Http\Request;
 
@@ -40,6 +41,8 @@ class ChatMessageController extends Controller
             'receiver_id' => $request->receiver_id,
             'message' => $request->message,
         ]);
+
+        broadcast(new MessageSent($message))->toOthers();
 
         return response()->json([
             'message' => $message,
