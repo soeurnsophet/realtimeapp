@@ -2,7 +2,8 @@
 import ChatList from "@/components/Chats/ChatList.vue";
 import {
     apiGetChatMessages,
-    apiSendChatMessage
+    apiSendChatMessage,
+    apiSendTypingStatus
 } from "@/functions/api/chat";
 import { apiGetUsers } from "@/functions/api/user";
 import { formatDate } from "@/functions/formatDate";
@@ -23,6 +24,7 @@ const authUser = useUserStore();
 
 const message = ref("");
 const chatWindow = ref(null);
+const isTyping = ref(false);
 
 async function apiGetChatList() {
     const res = await apiGetUsers();
@@ -98,9 +100,35 @@ onMounted(async () => {
 
                 scrollToBottom();
             }
+        })
+        .listen(".user.typing", (event) => {
+            isTyping.value = event.typing
         });
 });
 
+let typingTimeout = null;
+
+
+function handleTyping() {
+    if (!selectedChat.value.id) return
+    if (isTyping) {
+        apiSendTypingStatus({
+            receiver_id: selectedChat.value.id,
+            typing: true
+        })
+        console.log("HI");
+    }
+
+    clearTimeout(typingTimeout);
+
+    typingTimeout = setTimeout(() => {
+        isTyping.value = false
+        apiSendTypingStatus({
+            receiver_id: selectedChat.value.id,
+            typing: false
+        })
+    }, 1000);
+}
 onUnmounted(() => {
     echo.leave(`realtimeapp.${authUser.id}`);
 });
@@ -153,6 +181,7 @@ onUnmounted(() => {
                                     {{ formatDate(message.created_at) }}
                                 </span>
                             </div>
+
                         </template>
 
                         <!-- Outgoing -->
@@ -172,6 +201,20 @@ onUnmounted(() => {
                                 class="w-8 h-8 rounded-full object-cover mt-1" />
                         </template>
                     </div>
+                    <div v-if="isTyping" class="text-sm text-gray-500 mb-3 flex" :class="message.sender_id === authUser.id
+                        ? 'justify-end'
+                        : 'justify-start'
+                        ">
+                        <img src="https://randomuser.me/api/portraits/men/2.jpg" alt="Profile"
+                            class="w-8 h-8 rounded-full object-cover mt-1" />
+
+                        <div class="ml-3">
+                            <div class="bg-white p-3 rounded-lg rounded-tl-none shadow-sm max-w-xs animate-pulse">
+                                <p>Typing...</p>
+                            </div>
+                        </div>
+
+                    </div>
                 </div>
                 <!-- Message input -->
                 <div class="p-3 border-t">
@@ -185,7 +228,7 @@ onUnmounted(() => {
                         <button class="text-gray-500 mx-2">
                             <i class="fas fa-camera"></i>
                         </button>
-                        <input v-model="message" type="text" placeholder="Message..."
+                        <input @input="handleTyping" v-model="message" type="text" placeholder="Message..."
                             class="flex-1 bg-gray-100 rounded-full py-2 px-4 focus:outline-none" />
                         <button @click="sendMessage" :disabled="!message"
                             class="ml-2 w-10 h-10 rounded-full bg-blue-500 text-white flex items-center justify-center"

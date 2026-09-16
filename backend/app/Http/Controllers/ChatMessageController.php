@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Events\MessageSent;
+use App\Events\UserTyping;
 use App\Models\ChatMessage;
 use Illuminate\Http\Request;
 
@@ -46,6 +47,19 @@ class ChatMessageController extends Controller
 
         return response()->json([
             'message' => $message,
+        ]);
+    }
+
+    public function typing(Request $request)
+    {
+        UserTyping::dispatch(
+            auth()->id(),
+            $request->receiver_id,
+            $request->typing
+        );
+
+        return response()->json([
+            'message' => 'Typing',
         ]);
     }
 

@@ -4,6 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Foundation\Events\Dispatchable;
 
 #[Fillable([
     'sender_id',
@@ -12,6 +13,7 @@ use Illuminate\Database\Eloquent\Model;
 ])]
 class ChatMessage extends Model
 {
+    use Dispatchable;
     public function sender()
     {
         return $this->belongsTo(User::class, 'sender_id');

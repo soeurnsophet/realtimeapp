@@ -7,3 +7,7 @@ export async function apiGetChatMessages(receiverId) {
 export async function apiSendChatMessage(message) {
     return await api.post('/sendChatMessage', message)
 }
+
+export async function apiSendTypingStatus(data) {
+    return await api.post('/chat/typing', data);
+}

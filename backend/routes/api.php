@@ -14,4 +14,5 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::apiResource('users', UserController::class);
     Route::get('/getChatMessages/{receiver_id}', [ChatMessageController::class, 'index']);
     Route::post('/sendChatMessage', [ChatMessageController::class, 'store']);
+    Route::post('/chat/typing', [ChatMessageController::class, 'typing']);
 });
