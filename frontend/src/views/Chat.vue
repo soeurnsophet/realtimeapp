@@ -5,6 +5,7 @@ import {
     apiSendChatMessage
 } from "@/functions/api/chat";
 import { apiGetUsers } from "@/functions/api/user";
+import { formatDate } from "@/functions/formatDate";
 import echo from "@/plugins/echo";
 import { useUserStore } from "@/stores/user";
 import {
@@ -83,8 +84,6 @@ function scrollToBottom() {
 
 onMounted(async () => {
     await apiGetChatList();
-
-
     echo.private(`realtimeapp.${authUser.id}`)
         .listen(".message.sent", async (event) => {
 
@@ -151,7 +150,7 @@ onUnmounted(() => {
                                 </div>
 
                                 <span class="text-xs text-gray-500 mt-1 block">
-                                    {{ message.created_at }}
+                                    {{ formatDate(message.created_at) }}
                                 </span>
                             </div>
                         </template>
@@ -164,8 +163,8 @@ onUnmounted(() => {
                                 </div>
 
                                 <span class="text-xs text-gray-500 mt-1 block">
-                                    {{ message.created_at }}
-                                    <i class="fas fa-check ml-1 text-blue-500"></i>
+                                    {{ formatDate(message.created_at) }}
+                                    <i class="fa-solid fa-check-double  ml-1 text-blue-500"></i>
                                 </span>
                             </div>
 
