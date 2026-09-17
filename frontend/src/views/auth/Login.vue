@@ -92,7 +92,7 @@ async function login() {
             <!-- Register Link -->
             <p class="text-center text-gray-600 text-sm mt-6">
                 Don't have an account?
-                <a href="/" class="text-green-600 font-semibold hover:underline">
+                <a href="/register" class="text-green-600 font-semibold hover:underline">
                     Register
                 </a>
             </p>

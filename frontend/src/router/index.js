@@ -1,6 +1,7 @@
 import { apiVerify } from '@/functions/api/auth'
 import { useUserStore } from '@/stores/user'
 import Login from '@/views/auth/Login.vue'
+import Register from '@/views/auth/Register.vue'
 import Chat from '@/views/Chat.vue'
 import { createRouter, createWebHistory } from 'vue-router'
 
@@ -11,6 +12,14 @@ const router = createRouter({
             path: '/',
             name: 'auth.login',
             component: Login,
+            meta: {
+                requiresAuth: false
+            }
+        },
+        {
+            path: '/register',
+            name: 'auth.register',
+            component: Register,
             meta: {
                 requiresAuth: false
             }
