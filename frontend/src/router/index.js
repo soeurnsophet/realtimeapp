@@ -1,6 +1,7 @@
 import { apiVerify } from '@/functions/api/auth'
 import { useUserStore } from '@/stores/user'
 import Login from '@/views/auth/Login.vue'
+import OauthExchange from '@/views/auth/OauthExchange.vue'
 import Register from '@/views/auth/Register.vue'
 import Chat from '@/views/Chat.vue'
 import { createRouter, createWebHistory } from 'vue-router'
@@ -20,6 +21,14 @@ const router = createRouter({
             path: '/register',
             name: 'auth.register',
             component: Register,
+            meta: {
+                requiresAuth: false
+            }
+        },
+        {
+            path: '/oauth/callback',
+            name: 'auth.exchange-token',
+            component: OauthExchange,
             meta: {
                 requiresAuth: false
             }

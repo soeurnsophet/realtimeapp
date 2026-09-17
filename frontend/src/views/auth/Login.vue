@@ -43,6 +43,14 @@ async function login() {
     }
 }
 
+async function handleLoginWithGoogle() {
+    try {
+        window.location.href = `${import.meta.env.VITE_API_URL}/google/oauth/redirect?callback_url=http://localhost:5173/oauth/callback`
+    } catch (error) {
+        alert(error.message)
+    }
+}
+
 </script>
 <template>
     <div class="bg-gray-100 flex items-center justify-center min-h-screen">
@@ -81,7 +89,7 @@ async function login() {
                 </div>
 
                 <!-- Google Login -->
-                <button type="button"
+                <button type="button" @click="handleLoginWithGoogle"
                     class="w-full flex items-center justify-center gap-2 border border-gray-300 py-2 rounded-lg hover:bg-gray-100 transition">
                     <img src="https://www.svgrepo.com/show/475656/google-color.svg" class="w-5 h-5" alt="Google Logo" />
 

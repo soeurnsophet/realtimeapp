@@ -11,3 +11,11 @@ export async function apiVerify() {
 export async function apiRegister(user) {
     return await api.post('/register', user)
 }
+
+export async function apiOAuthExchangeToken(token) {
+    return await api.post('/oauth/exhange-token', {}, {
+        headers: {
+            Authorization: `Bearer ${token}`,
+        },
+    })
+}
