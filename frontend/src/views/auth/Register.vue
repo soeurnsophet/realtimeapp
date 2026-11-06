@@ -1,12 +1,9 @@
 ```vue
 <script setup>
-import { apiRegister } from '@/functions/api/auth';
-import { useUserStore } from '@/stores/user';
+import { apiRegister, apiResendEmailVerification } from '@/functions/api/auth';
 import { ref } from 'vue';
-import { useRouter } from 'vue-router';
 
-const router = useRouter();
-const userStore = useUserStore();
+const registerEmail = ref(false);
 
 const user = ref({
     name: '',
@@ -43,16 +40,8 @@ const resetUserState = () => {
 
 async function register() {
     try {
-        const res = await apiRegister(user.value);
-
-        console.log(res.data);
-
-        // If your API returns token + user
-        userStore.setSanctumToken(res.data.token);
-        userStore.setUserState(res.data.user);
-
-        // Go to chats after register
-        router.replace({ name: 'chats' });
+        await apiRegister(user.value);
+        registerEmail.value = user.value.email;
 
     } catch (error) {
         console.log(error);
@@ -62,6 +51,15 @@ async function register() {
         } else {
             alert(error.response?.data?.message || error.message);
         }
+    }
+}
+
+function resendEmailVerification() {
+    try {
+        const res = apiResendEmailVerification(registerEmail.value);
+        alert(res.data?.message);
+    } catch (error) {
+        alert(error.response?.data?.message || error.message);
     }
 }
 </script>
@@ -143,6 +141,14 @@ async function register() {
                     class="w-full bg-green-600 text-white py-2 rounded-lg font-semibold hover:bg-green-700 transition">
                     Register
                 </button>
+                <div v-if="registerEmail">
+                    <h5>You are registered. Please check your email to verify your account with {{ user.email }}</h5>
+                    <!-- Reset Button -->
+                    <button type="reset" @click="resendEmailVerification"
+                        class="w-full bg-red-600 text-white py-2 rounded-lg font-semibold hover:bg-red-700 transition">
+                        Resent Verification Email
+                    </button>
+                </div>
 
                 <!-- Divider -->
                 <div class="flex items-center gap-3 my-4">
@@ -177,4 +183,3 @@ async function register() {
         </div>
     </div>
 </template>
-```

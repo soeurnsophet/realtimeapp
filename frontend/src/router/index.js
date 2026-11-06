@@ -1,5 +1,6 @@
 import { apiVerify } from '@/functions/api/auth'
 import { useUserStore } from '@/stores/user'
+import EmailVerify from '@/views/auth/EmailVerify.vue'
 import Login from '@/views/auth/Login.vue'
 import OauthExchange from '@/views/auth/OauthExchange.vue'
 import Register from '@/views/auth/Register.vue'
@@ -13,22 +14,21 @@ const router = createRouter({
             path: '/',
             name: 'auth.login',
             component: Login,
-            meta: {
-                requiresAuth: false
-            }
         },
         {
             path: '/register',
             name: 'auth.register',
             component: Register,
-            meta: {
-                requiresAuth: false
-            }
         },
         {
             path: '/oauth/callback',
             name: 'auth.exchange-token',
             component: OauthExchange,
+        },
+        {
+            path: '/email/verify',
+            name: 'auth.email-verify',
+            component: EmailVerify,
             meta: {
                 requiresAuth: false
             }
@@ -50,6 +50,7 @@ const router = createRouter({
 
 router.beforeEach(async to => {
     const { requiresAuth } = to.meta
+    if (!requiresAuth || requiresAuth === undefined) return
     const userStore = useUserStore()
     const token = userStore.getSanctumToken()
 
@@ -67,7 +68,7 @@ router.beforeEach(async to => {
         }
     }
 
-    if (!requiresAuth && token) {
+    if (to.meta.guestOnly && token) {
         return { name: 'chats' }
     }
 })

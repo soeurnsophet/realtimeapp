@@ -9,7 +9,7 @@ export async function apiVerify() {
 }
 
 export async function apiRegister(user) {
-    return await api.post('/register', user)
+    return await api.post('/register', { ...user, callback_url: import.meta.env.VITE_API_URL_EMAIL_VERIFY_CALLBACK },)
 }
 
 export async function apiOAuthExchangeToken(token) {
@@ -18,4 +18,8 @@ export async function apiOAuthExchangeToken(token) {
             Authorization: `Bearer ${token}`,
         },
     })
+}
+
+export async function apiResendEmailVerification(email) {
+    return await api.post('/resend-email-verification', { email: email, callback_url: import.meta.env.VITE_API_URL_EMAIL_VERIFY_CALLBACK })
 }

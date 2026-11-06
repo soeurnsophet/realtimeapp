@@ -21,7 +21,8 @@ export const useUserStore = defineStore("user", {
             localStorage.setItem('SANCTUM_TOKEN', token)
         },
         getSanctumToken() {
-            return localStorage.getItem('SANCTUM_TOKEN')
+            const token = localStorage.getItem('SANCTUM_TOKEN')
+            return token && token !== 'null' && token !== 'undefined' ? token : null
         },
         removeSanctumToken() {
             localStorage.removeItem('SANCTUM_TOKEN')
